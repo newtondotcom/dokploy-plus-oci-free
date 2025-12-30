@@ -3,6 +3,7 @@ locals {
   # Oracle Cloud Free Tier limits
   max_ocpus_total      = 4
   max_memory_gbs_total = 24
+  instance_shape       = "VM.Standard.A1.Flex"  # Free tier eligible shape
 
   # Availability domain distribution (even spread across all ADs)
   # Masters and workers are distributed separately and evenly
@@ -26,10 +27,13 @@ locals {
     ].name
   ] : []
 
+  # SSH key: read from file path
+  ssh_authorized_keys = file(var.ssh_public_key_path)
+
   instance_config = {
     is_pv_encryption_in_transit_enabled = true
-    ssh_authorized_keys                 = var.ssh_authorized_keys
-    shape                               = var.instance_shape
+    ssh_authorized_keys                 = local.ssh_authorized_keys
+    shape                               = local.instance_shape
     shape_config = {
       memory_in_gbs = floor(local.max_memory_gbs_total / (var.num_worker_instances + var.num_master_instances))
       ocpus         = floor(local.max_ocpus_total / (var.num_worker_instances + var.num_master_instances))
