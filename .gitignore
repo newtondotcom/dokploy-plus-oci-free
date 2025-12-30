@@ -10,3 +10,7 @@
 .ssh
 **/node_modules/
 .terraform.lock.hcl
+
+# Ignore all files in user folder except .gitkeep
+user/*
+!user/.gitkeep
