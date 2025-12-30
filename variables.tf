@@ -31,13 +31,13 @@ variable "instance_shape" {
 }
 
 variable "memory_in_gbs" {
-  description = "Memory in GBs for instance shape config. 6 GB is the maximum for free tier with 3 working nodes."
+  description = "Memory in GBs for instance shape config. 6 GB is the maximum for free tier in 3 working nodes, because 24 GB in total."
   type        = string
-  default     = "6" # OCI Free
+  default     = "6" # OCI Free in
 }
 
 variable "ocpus" {
-  description = "OCPUs for instance shape config. 1 OCPU is the maximum for free tier with 3 working nodes."
+  description = "OCPUs for instance shape config. 1 OCPU is the maximum for free tier with 3 working nodes, because 4 OCPUs in total."
   type        = string
   default     = "1" # OCI Free
 }
