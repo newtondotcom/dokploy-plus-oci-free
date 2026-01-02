@@ -1,7 +1,7 @@
 # VCN configuration
 resource "oci_core_vcn" "dokploy_vcn" {
   cidr_block     = "10.0.0.0/16"
-  tenancy_ocid = var.tenancy_ocid
+  compartment_id = var.tenancy_ocid
   display_name   = "network-dokploy-${random_string.resource_code.result}"
   dns_label      = "vcn${random_string.resource_code.result}"
 }
@@ -9,7 +9,7 @@ resource "oci_core_vcn" "dokploy_vcn" {
 # Subnet configuration
 resource "oci_core_subnet" "dokploy_subnet" {
   cidr_block     = "10.0.0.0/24"
-  tenancy_ocid = var.tenancy_ocid
+  compartment_id = var.tenancy_ocid
   display_name   = "subnet-dokploy-${random_string.resource_code.result}"
   dns_label      = "subnet${random_string.resource_code.result}"
   route_table_id = oci_core_vcn.dokploy_vcn.default_route_table_id
@@ -21,7 +21,7 @@ resource "oci_core_subnet" "dokploy_subnet" {
 
 # Internet Gateway configuration
 resource "oci_core_internet_gateway" "dokploy_internet_gateway" {
-  tenancy_ocid = var.tenancy_ocid
+  compartment_id = var.tenancy_ocid
   display_name   = "Internet Gateway network-dokploy"
   enabled        = true
   vcn_id         = oci_core_vcn.dokploy_vcn.id
@@ -40,7 +40,7 @@ resource "oci_core_default_route_table" "dokploy_default_route_table" {
 
 # Security List for Dokploy
 resource "oci_core_security_list" "dokploy_security_list" {
-  tenancy_ocid = var.tenancy_ocid
+  compartment_id = var.tenancy_ocid
   vcn_id         = oci_core_vcn.dokploy_vcn.id
   display_name   = "Dokploy Security List"
 

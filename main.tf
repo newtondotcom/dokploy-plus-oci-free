@@ -3,7 +3,7 @@ resource "oci_core_instance" "dokploy_main" {
   count = var.num_master_instances
 
   display_name        = "dokploy-master-${count.index + 1}-${random_string.resource_code.result}"
-  tenancy_ocid      = var.tenancy_ocid
+  compartment_id      = var.tenancy_ocid
   availability_domain = local.master_availability_domains[count.index]
 
   is_pv_encryption_in_transit_enabled = local.instance_config.is_pv_encryption_in_transit_enabled
@@ -93,7 +93,7 @@ resource "oci_core_instance" "dokploy_worker" {
   count = var.num_worker_instances
 
   display_name        = "dokploy-worker-${count.index + 1}-${random_string.resource_code.result}"
-  tenancy_ocid      = var.tenancy_ocid
+  compartment_id      = var.tenancy_ocid
   availability_domain = local.worker_availability_domains[count.index]
 
   is_pv_encryption_in_transit_enabled = local.instance_config.is_pv_encryption_in_transit_enabled
