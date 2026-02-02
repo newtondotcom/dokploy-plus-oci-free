@@ -1,6 +1,17 @@
 # Dokploy Deployment on OCI Free Tier
 
-This Terraform project deploys a Dokploy instance along with worker nodes in Oracle Cloud Infrastructure (OCI) Free Tier. **Dokploy** is an open-source platform to manage your app deployments and server configurations.
+This Terraform project deploys a Dokploy instance along with worker nodes, object storage, and cost monitoring in Oracle Cloud Infrastructure (OCI) Free Tier. **Dokploy** is an open-source platform to manage your app deployments and server configurations.
+
+## Architecture
+
+This project consists of three independent modules:
+
+- **Dokploy Module**: Compute instances (master + workers), networking, and Docker Swarm cluster
+- **S3 Module**: Object storage buckets with S3-compatible access for backups and media
+- **Alert Module**: Budget monitoring and email notifications for cost control
+
+Each module can be deployed, planned, or destroyed independently using the justfile commands.
+All of them fall under [Oracle Free Tier](https://www.oracle.com/cloud/free/)
 
 ## Quick Start
 
@@ -13,7 +24,20 @@ This Terraform project deploys a Dokploy instance along with worker nodes in Ora
    ```bash
    terraform init
    terraform plan
-   terraform apply -var-file="user/terraform.tfvars"
+   ```
+
+   Then apply all modules or select specific ones:
+   ```bash
+   # Deploy everything
+   just apply
+   
+   # Or deploy individual modules
+   just apply-s3       # Object storage only
+   just apply-alert    # Budget alerts only
+   just apply-dokploy  # Dokploy infrastructure only
+   
+   # View S3 secret keys after deployment
+   just show-s3-keys
    ```
 
 ## About Dokploy
@@ -125,24 +149,49 @@ To begin deploying applications, you need to add servers to your Dokploy cluster
 
 ### Configure a Dokploy Cluster with new workers
 
-After setting up the master Dokploy instance, you can expand your cluster by adding worker nodes. These worker instances will help distribute the workload for your deployments.
+After setting up the master Dokploy instance, you can expand your cluster by adding master or worker nodes. These worker instances will help distribute the workload for your deployments.
 
-See more info about configuring your cluster on the [Dokploy Cluster Docs](https://docs.dokploy.com/docs/core/cluster).
+See more info about configuring your cluster on the [Dokploy Cluster Docs](https://docs.dokploy.com/docs/core/cluster#adding-nodes).
 
 ## Project Structure
+
+This project is organized into three Terraform modules for better separation of concerns and independent management:
+
+### Modules
+
+#### 1. **S3 Module** (`modules/s3/`)
+Manages Oracle Cloud Object Storage resources with S3-compatible access:
+- Creates Standard and Archive tier storage buckets
+- Generates S3-compatible access keys and secret keys for both buckets
+- Provides S3 endpoint configuration for application integration
+- **Use case**: Store backups, media files, application assets, and archive data
+
+#### 2. **Alert Module** (`modules/alert/`)
+Handles cost monitoring and billing alerts:
+- Creates budget tracking for your OCI tenancy
+- Configures alert rules to notify when spending begins (>$0.01)
+- Sends email notifications when budget thresholds are reached
+- **Use case**: Monitor costs and prevent unexpected charges on Free Tier
+
+#### 3. **Dokploy Module** (`modules/dokploy/`)
+Deploys the core Dokploy infrastructure:
+- Provisions master and worker compute instances
+- Sets up VCN, subnets, and security groups for networking
+- Configures Docker Swarm cluster for container orchestration
+- Distributes resources across availability domains for high availability
+- **Use case**: Host and manage your applications with Dokploy's web interface
+
+### Root Files
 
 -   `bin/`: Contains bash scripts for setting up Dokploy on both the master instance and the worker instances.
     -   `dokploy-master.sh`: Script to install Dokploy on the master instance.
     -   `dokploy-worker.sh`: Script to configure necessary dependencies on worker instances.
--   `helper.tf`: Contains helper functions and reusable modules to streamline the infrastructure setup.
 -   `doc/`: Directory for images used in the README (e.g., screenshots of Dokploy setup).
--   `locals.tf`: Defines local values used throughout the Terraform configuration, such as dynamic values or reusable expressions.
--   `main.tf`: Core Terraform configuration file that defines the infrastructure for Dokploy's master and worker instances.
--   `network.tf`: Configuration for setting up the required OCI networking resources (VCNs, subnets, security lists, etc.).
--   `output.tf`: Specifies the output variables such as the IP addresses for the dashboard and worker nodes.
+-   `main.tf`: Root configuration that orchestrates all three modules.
+-   `outputs.tf`: Aggregates outputs from all modules (dashboard URL, IPs, S3 credentials, etc.).
 -   `providers.tf`: Declares the required cloud providers and versions, particularly for Oracle Cloud Infrastructure.
--   `README.md`: This file, providing instructions on deployment and usage.
--   `variables.tf`: Defines input variables used in the project, including compartment ID, SSH keys, instance shape, and more.
+-   `variables.tf`: Defines input variables used across all modules.
+-   `justfile`: Contains convenient commands for managing modules independently or together.
 
 ## Terraform Variables
 
