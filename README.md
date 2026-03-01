@@ -8,12 +8,14 @@ This Terraform project deploys a Dokploy instance along with worker nodes in Ora
 2. **Prepare your keys**:
    - Generate or place your SSH public key in `./user/vm_ssh_key.pub`
    - Place your OCI API private key in `./user/oci_api_key.pem`
-3. **Configure variables** in `terraform.tfvars` or via environment variables
+3. **Configure variables** in `main.tfvars` or via environment variables
 4. **Deploy**:
    ```bash
-   terraform init
-   terraform plan
-   terraform apply -var-file="user/terraform.tfvars"
+   tofu init
+   tofu plan
+   tofu apply -var-file="user/main.tfvars"
+   tofu output standard_bucket_secret_key
+   tofu output archive_bucket_secret_key
    ```
 
 ## About Dokploy
