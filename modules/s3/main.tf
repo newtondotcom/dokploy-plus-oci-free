@@ -21,12 +21,12 @@ resource "oci_objectstorage_bucket" "archive_bucket" {
 
 # Customer Secret Key for Standard bucket S3 access
 resource "oci_identity_customer_secret_key" "standard_bucket_key" {
-  user_id     = var.user_ocid
+  user_id      = var.user_ocid
   display_name = "standard-bucket-s3-access-key"
 }
 
 # Customer Secret Key for Archive bucket S3 access
 resource "oci_identity_customer_secret_key" "archive_bucket_key" {
-  user_id     = var.user_ocid
+  user_id      = var.user_ocid
   display_name = "archive-bucket-s3-access-key"
 }

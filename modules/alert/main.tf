@@ -22,5 +22,5 @@ resource "oci_budget_alert_rule" "one_cent_alert" {
 
   message = "⚠️ OCI billing alert: spending has started (>$0.00)."
 
-  recipients = var.git_email
+  recipients = var.alert_email
 }

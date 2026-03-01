@@ -3,12 +3,12 @@ locals {
   # Oracle Cloud Free Tier limits
   max_ocpus_total      = 4
   max_memory_gbs_total = 24
-  instance_shape       = "VM.Standard.A1.Flex"  # Free tier eligible shape
+  instance_shape       = "VM.Standard.A1.Flex" # Free tier eligible shape
 
   # Availability domain distribution (even spread across all ADs)
   # Masters and workers are distributed separately and evenly
   num_availability_domains = length(data.oci_identity_availability_domains.ads.availability_domains)
-  
+
   # List of AD names for master instances (even distribution across all available ADs)
   # Formula: floor(idx * num_ads / num_master_instances) ensures even spread
   master_availability_domains = var.num_master_instances > 0 ? [
@@ -17,7 +17,7 @@ locals {
       floor(idx * local.num_availability_domains / var.num_master_instances)
     ].name
   ] : []
-  
+
   # List of AD names for worker instances (even distribution across all available ADs)
   # Formula: floor(idx * num_ads / num_worker_instances) ensures even spread
   worker_availability_domains = var.num_worker_instances > 0 ? [

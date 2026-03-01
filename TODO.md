@@ -1,2 +1,1 @@
-- DOKPLOY now support mulitples master - we must see how to integrate this in tf deployment
-- Monitor the following repo because we might be able to deploy things with tf : https://github.com/j0bIT/terraform-provider-dokploy
+- Monitor the following repo because we might be able to deploy things with tf : https://github.com/marconneves/terraform-provider-dokploy

@@ -48,6 +48,6 @@ variable "num_worker_instances" {
 }
 
 variable "alert_email" {
-  description = "Email address you cant to be alerted if you are being charged by Oracle" 
-  type = string
+  description = "Email address you cant to be alerted if you are being charged by Oracle"
+  type        = string
 }

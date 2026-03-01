@@ -1,179 +1,36 @@
-# Main instance
-resource "oci_core_instance" "dokploy_main" {
-  count = var.num_master_instances
-
-  display_name        = "dokploy-master-${count.index + 1}-${random_string.resource_code.result}"
-  compartment_id      = var.tenancy_ocid
-  availability_domain = local.master_availability_domains[count.index]
-
-  is_pv_encryption_in_transit_enabled = local.instance_config.is_pv_encryption_in_transit_enabled
-  shape                               = local.instance_config.shape
-
-  metadata = {
-    ssh_authorized_keys = local.instance_config.ssh_authorized_keys
-    user_data           = base64encode(file("./bin/dokploy-master.sh"))
-    "instance-role"     = "master" 
-  }
-
-  create_vnic_details {
-    display_name              = "dokploy-master-${count.index + 1}-${random_string.resource_code.result}"
-    subnet_id                 = oci_core_subnet.dokploy_subnet.id
-    assign_ipv6ip             = false
-    assign_private_dns_record = true
-    assign_public_ip          = true
-  }
-
-  availability_config {
-    recovery_action = local.instance_config.availability_config.recovery_action
-  }
-
-  instance_options {
-    are_legacy_imds_endpoints_disabled = local.instance_config.instance_options.are_legacy_imds_endpoints_disabled
-  }
-
-  shape_config {
-    memory_in_gbs = local.instance_config.shape_config.memory_in_gbs
-    ocpus         = local.instance_config.shape_config.ocpus
-  }
-
-  source_details {
-    source_id               = local.instance_config.source_details.source_id
-    source_type             = local.instance_config.source_details.source_type
-    boot_volume_size_in_gbs = local.instance_config.source_details.boot_volume_size_in_gbs
-  }
-
-  agent_config {
-    is_management_disabled = "false"
-    is_monitoring_disabled = "false"
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Vulnerability Scanning"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Management Agent"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Custom Logs Monitoring"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute RDMA GPU Monitoring"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Compute Instance Monitoring"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute HPC RDMA Auto-Configuration"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute HPC RDMA Authentication"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Cloud Guard Workload Protection"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Block Volume Management"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Bastion"
+terraform {
+  required_providers {
+    oci = {
+      source  = "oracle/oci"
+      version = "~> 6.22.0"
     }
   }
 }
 
-# Worker instances (similar to main instance)
-resource "oci_core_instance" "dokploy_worker" {
-  count = var.num_worker_instances
+# S3 Module
+module "s3" {
+  source = "./modules/s3"
 
-  display_name        = "dokploy-worker-${count.index + 1}-${random_string.resource_code.result}"
-  compartment_id      = var.tenancy_ocid
-  availability_domain = local.worker_availability_domains[count.index]
+  tenancy_ocid = var.tenancy_ocid
+  user_ocid    = var.user_ocid
+  region       = var.region
+}
 
-  is_pv_encryption_in_transit_enabled = local.instance_config.is_pv_encryption_in_transit_enabled
-  shape                               = local.instance_config.shape
+# Alert Module
+module "alert" {
+  source = "./modules/alert"
 
-  metadata = {
-    ssh_authorized_keys = local.instance_config.ssh_authorized_keys
-    user_data           = base64encode(file("./bin/dokploy-worker.sh"))
-    "instance-role"     = "worker" 
-  }
+  tenancy_ocid = var.tenancy_ocid
+  alert_email  = var.alert_email
+}
 
-  create_vnic_details {
-    display_name              = "dokploy-worker-${count.index + 1}-${random_string.resource_code.result}"
-    subnet_id                 = oci_core_subnet.dokploy_subnet.id
-    assign_ipv6ip             = false
-    assign_private_dns_record = true
-    assign_public_ip          = true
-  }
+# Dokploy Module
+module "dokploy" {
+  source = "./modules/dokploy"
 
-  availability_config {
-    recovery_action = local.instance_config.availability_config.recovery_action
-  }
-
-  instance_options {
-    are_legacy_imds_endpoints_disabled = local.instance_config.instance_options.are_legacy_imds_endpoints_disabled
-  }
-
-  shape_config {
-    memory_in_gbs = local.instance_config.shape_config.memory_in_gbs
-    ocpus         = local.instance_config.shape_config.ocpus
-  }
-
-  source_details {
-    source_id               = local.instance_config.source_details.source_id
-    source_type             = local.instance_config.source_details.source_type
-    boot_volume_size_in_gbs = local.instance_config.source_details.boot_volume_size_in_gbs
-  }
-
-  agent_config {
-    is_management_disabled = "false"
-    is_monitoring_disabled = "false"
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Vulnerability Scanning"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Management Agent"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Custom Logs Monitoring"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute RDMA GPU Monitoring"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Compute Instance Monitoring"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute HPC RDMA Auto-Configuration"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Compute HPC RDMA Authentication"
-    }
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Cloud Guard Workload Protection"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Block Volume Management"
-    }
-    plugins_config {
-      desired_state = "DISABLED"
-      name          = "Bastion"
-    }
-  }
+  tenancy_ocid         = var.tenancy_ocid
+  region               = var.region
+  ssh_public_key_path  = var.ssh_public_key_path
+  num_master_instances = var.num_master_instances
+  num_worker_instances = var.num_worker_instances
 }
